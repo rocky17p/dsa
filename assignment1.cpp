@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stack>
 using namespace std;
 
 class Node {
@@ -52,19 +53,22 @@ public:
         }
     }
 
-    int calculateTreeProperties(Node* node, int& leaves, int& internalNodes) {
+    int calculateHeight(Node* node) {
         if (node == nullptr) return -1;
-
-        int leftHeight = calculateTreeProperties(node->left, leaves, internalNodes);
-        int rightHeight = calculateTreeProperties(node->right, leaves, internalNodes);
-
-        if (node->left == nullptr && node->right == nullptr) {
-            leaves++;
-        } else {
-            internalNodes++;
-        }
-
+        int leftHeight = calculateHeight(node->left);
+        int rightHeight = calculateHeight(node->right);
         return 1 + max(leftHeight, rightHeight);
+    }
+
+    int countLeaves(Node* node) {
+        if (node == nullptr) return 0;
+        if (node->left == nullptr && node->right == nullptr) return 1;
+        return countLeaves(node->left) + countLeaves(node->right);
+    }
+
+    int countInternalNodes(Node* node) {
+        if (node == nullptr || (node->left == nullptr && node->right == nullptr)) return 0;
+        return 1 + countInternalNodes(node->left) + countInternalNodes(node->right);
     }
 
     void swapSubtrees(Node* node) {
@@ -74,12 +78,45 @@ public:
         swapSubtrees(node->right);
     }
 
-    void eraseTree(Node*& node) {
+    void eraseTreeRecursive(Node*& node) {
         if (node == nullptr) return;
-        eraseTree(node->left);
-        eraseTree(node->right);
+        eraseTreeRecursive(node->left);
+        eraseTreeRecursive(node->right);
         delete node;
         node = nullptr;
+    }
+
+    void eraseTreeIterative(Node*& node) {
+        if (node == nullptr) return;
+        stack<Node*> stk;
+        stk.push(node);
+
+        while (!stk.empty()) {
+            Node* current = stk.top();
+            stk.pop();
+
+            if (current->left) stk.push(current->left);
+            if (current->right) stk.push(current->right);
+
+            delete current;
+        }
+
+        node = nullptr;
+    }
+
+    Node* copyTree(Node* node) {
+        if (node == nullptr) return nullptr;
+        Node* newNode = new Node(node->data);
+        newNode->left = copyTree(node->left);
+        newNode->right = copyTree(node->right);
+        return newNode;
+    }
+
+    BinaryTree& operator=(const BinaryTree& other) {
+        if (this == &other) return *this;
+        eraseTreeRecursive(root);
+        root = copyTree(other.root);
+        return *this;
     }
 
     void inorderTraversal(Node* node) {
@@ -105,16 +142,22 @@ public:
 
     void menu() {
         int choice;
+        BinaryTree copiedTree;
+
         do {
             cout << "\n==== Binary Tree Menu ====\n";
             cout << "1. Insert Node\n";
             cout << "2. Inorder Traversal\n";
             cout << "3. Preorder Traversal\n";
             cout << "4. Postorder Traversal\n";
-            cout << "5. Calculate Height, Leaves, and Internal Nodes\n";
-            cout << "6. Swap Left and Right Subtrees\n";
-            cout << "7. Erase Tree\n";
-            cout << "8. Exit\n";
+            cout << "5. Calculate Height\n";
+            cout << "6. Count Leaves\n";
+            cout << "7. Count Internal Nodes\n";
+            cout << "8. Swap Left and Right Subtrees\n";
+            cout << "9. Erase Tree (Recursive)\n";
+            cout << "10. Erase Tree (Iterative)\n";
+            cout << "11. Copy Tree\n";
+            cout << "12. Exit\n";
             cout << "Enter your choice: ";
             cin >> choice;
 
@@ -145,24 +188,43 @@ public:
                     break;
                 }
                 case 5: {
-                    int leaves = 0, internalNodes = 0;
-                    int height = calculateTreeProperties(root, leaves, internalNodes);
+                    int height = calculateHeight(root);
                     cout << "Height of the tree: " << height << endl;
-                    cout << "Number of leaves: " << leaves << endl;
-                    cout << "Number of internal nodes: " << internalNodes << endl;
                     break;
                 }
                 case 6: {
+                    int leaves = countLeaves(root);
+                    cout << "Number of leaves: " << leaves << endl;
+                    break;
+                }
+                case 7: {
+                    int internalNodes = countInternalNodes(root);
+                    cout << "Number of internal nodes: " << internalNodes << endl;
+                    break;
+                }
+                case 8: {
                     swapSubtrees(root);
                     cout << "Subtrees swapped." << endl;
                     break;
                 }
-                case 7: {
-                    eraseTree(root);
-                    cout << "Tree erased." << endl;
+                case 9: {
+                    eraseTreeRecursive(root);
+                    cout << "Tree erased (recursive)." << endl;
                     break;
                 }
-                case 8: {
+                case 10: {
+                    eraseTreeIterative(root);
+                    cout << "Tree erased (iterative)." << endl;
+                    break;
+                }
+                case 11: {
+                    copiedTree = *this;
+                    cout << "Tree copied to another tree. Inorder of copied tree: ";
+                    copiedTree.inorderTraversal(copiedTree.root);
+                    cout << endl;
+                    break;
+                }
+                case 12: {
                     cout << "Exiting..." << endl;
                     break;
                 }
@@ -171,7 +233,7 @@ public:
                     break;
                 }
             }
-        } while (choice != 8);
+        } while (choice != 12);
     }
 };
 
