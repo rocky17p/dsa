@@ -53,7 +53,28 @@ public:
         }
     }
 
-    // Iterative Inorder Traversal
+    void preorder(node *root) {
+        if (root == nullptr) return;
+        cout << root->data << " ";
+        preorder(root->left);
+        preorder(root->right);
+    }
+
+    void inorder(node *root) {
+        if (root == nullptr) return;
+        inorder(root->left);
+        cout << root->data << " ";
+        inorder(root->right);
+    }
+
+    void postorder(node *root) {
+        if (root == nullptr) return;
+        postorder(root->left);
+        postorder(root->right);
+        cout << root->data << " ";
+    }
+
+    // Iterative Traversals
     void iterativeInorder(node *root) {
         stack<node *> st;
         node *current = root;
@@ -70,7 +91,6 @@ public:
         cout << endl;
     }
 
-    // Iterative Preorder Traversal
     void iterativePreorder(node *root) {
         if (root == nullptr) return;
         stack<node *> st;
@@ -85,7 +105,6 @@ public:
         cout << endl;
     }
 
-    // Iterative Postorder Traversal
     void iterativePostorder(node *root) {
         if (root == nullptr) return;
         stack<node *> st1, st2;
@@ -103,24 +122,120 @@ public:
         }
         cout << endl;
     }
+
+    int height(node *root) {
+        if (root == nullptr) return -1;
+        int leftHeight = height(root->left);
+        int rightHeight = height(root->right);
+        return 1 + max(leftHeight, rightHeight);
+    }
+
+    int countLeaves(node *root) {
+        if (root == nullptr) return 0;
+        if (root->left == nullptr && root->right == nullptr) return 1;
+        return countLeaves(root->left) + countLeaves(root->right);
+    }
+
+    int countInternalNodes(node *root) {
+        if (root == nullptr || (root->left == nullptr && root->right == nullptr)) return 0;
+        return 1 + countInternalNodes(root->left) + countInternalNodes(root->right);
+    }
+
+    void swapSubtrees(node *root) {
+        if (root == nullptr) return;
+        swap(root->left, root->right);
+        swapSubtrees(root->left);
+        swapSubtrees(root->right);
+    }
+
+    void eraserecursive(node *&root) {
+        if (root == nullptr) return;
+        eraserecursive(root->left);
+        eraserecursive(root->right);
+        delete root;
+        root = nullptr;
+    }
 };
 
 int main() {
     bt tree;
+    int choice, val;
 
-    tree.insert(10);
-    tree.insert(5);
-    tree.insert(20);
-    tree.insert(15);
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Insert Node\n";
+        cout << "2. Recursive Inorder Traversal\n";
+        cout << "3. Recursive Preorder Traversal\n";
+        cout << "4. Recursive Postorder Traversal\n";
+        cout << "5. Iterative Inorder Traversal\n";
+        cout << "6. Iterative Preorder Traversal\n";
+        cout << "7. Iterative Postorder Traversal\n";
+        cout << "8. Height of Tree\n";
+        cout << "9. Count of Leaf Nodes\n";
+        cout << "10. Count of Internal Nodes\n";
+        cout << "11. Swap Subtrees\n";
+        cout << "12. Erase Tree\n";
+        cout << "13. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-    cout << "Iterative Inorder Traversal: ";
-    tree.iterativeInorder(tree.root);
-
-    cout << "Iterative Preorder Traversal: ";
-    tree.iterativePreorder(tree.root);
-
-    cout << "Iterative Postorder Traversal: ";
-    tree.iterativePostorder(tree.root);
+        switch (choice) {
+        case 1:
+            cout << "Enter value to insert: ";
+            cin >> val;
+            tree.insert(val);
+            break;
+        case 2:
+            cout << "Recursive Inorder Traversal: ";
+            tree.inorder(tree.root);
+            cout << endl;
+            break;
+        case 3:
+            cout << "Recursive Preorder Traversal: ";
+            tree.preorder(tree.root);
+            cout << endl;
+            break;
+        case 4:
+            cout << "Recursive Postorder Traversal: ";
+            tree.postorder(tree.root);
+            cout << endl;
+            break;
+        case 5:
+            cout << "Iterative Inorder Traversal: ";
+            tree.iterativeInorder(tree.root);
+            break;
+        case 6:
+            cout << "Iterative Preorder Traversal: ";
+            tree.iterativePreorder(tree.root);
+            break;
+        case 7:
+            cout << "Iterative Postorder Traversal: ";
+            tree.iterativePostorder(tree.root);
+            break;
+        case 8:
+            cout << "Height of Tree: " << tree.height(tree.root) << endl;
+            break;
+        case 9:
+            cout << "Count of Leaf Nodes: " << tree.countLeaves(tree.root) << endl;
+            break;
+        case 10:
+            cout << "Count of Internal Nodes: " << tree.countInternalNodes(tree.root) << endl;
+            break;
+        case 11:
+            tree.swapSubtrees(tree.root);
+            cout << "Subtrees swapped.\n";
+            break;
+        case 12:
+            tree.eraserecursive(tree.root);
+            cout << "Tree erased.\n";
+            break;
+        case 13:
+            cout << "Exiting...\n";
+            break;
+        default:
+            cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 13);
 
     return 0;
 }
