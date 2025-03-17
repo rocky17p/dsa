@@ -43,17 +43,19 @@ public:
         cout << "Inserted (" << key << ", " << value << ")" << endl;
     }
 
-    int search(int key)
+    bool search(int key, int value)
+{
+    Node *temp = table[hashFunc(key)];
+
+    while (temp)
     {
-        Node *temp = table[hashFunc(key)];
-        while (temp)
-        {
-            if (temp->key == key)
-                return temp->value;
-            temp = temp->next;
-        }
-        return -1;
+        if (temp->key == key && temp->value == value)
+            return true;
+        temp = temp->next;
     }
+    return false;
+}
+
 
     void remove(int key)
     {
@@ -89,19 +91,6 @@ public:
             for (Node *temp = table[i]; temp; temp = temp->next)
                 cout << "(" << temp->key << ", " << temp->value << ") -> ";
             cout << "NULL\n";
-        }
-    }
-
-    ~HashTable()
-    {
-        for (auto &bucket : table)
-        {
-            while (bucket)
-            {
-                Node *temp = bucket;
-                bucket = bucket->next;
-                delete temp;
-            }
         }
     }
 };
