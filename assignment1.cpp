@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stack>
+#include <queue>
 using namespace std;
 
 class node {
@@ -148,11 +149,27 @@ public:
         swapSubtrees(root->right);
     }
 
-    void eraserecursive(node *&root) {
+    // Recursive Erase
+    void eraseRecursive(node *&root) {
         if (root == nullptr) return;
-        eraserecursive(root->left);
-        eraserecursive(root->right);
+        eraseRecursive(root->left);
+        eraseRecursive(root->right);
         delete root;
+        root = nullptr;
+    }
+
+    // Iterative Erase
+    void eraseIterative(node *&root) {
+        if (root == nullptr) return;
+        queue<node *> q;
+        q.push(root);
+        while (!q.empty()) {
+            node *current = q.front();
+            q.pop();
+            if (current->left) q.push(current->left);
+            if (current->right) q.push(current->right);
+            delete current;
+        }
         root = nullptr;
     }
 };
@@ -174,7 +191,7 @@ int main() {
         cout << "9. Count of Leaf Nodes\n";
         cout << "10. Count of Internal Nodes\n";
         cout << "11. Swap Subtrees\n";
-        cout << "12. Erase Tree\n";
+        cout << "12. Erase Tree (Choose Method)\n";
         cout << "13. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
@@ -226,8 +243,18 @@ int main() {
             cout << "Subtrees swapped.\n";
             break;
         case 12:
-            tree.eraserecursive(tree.root);
-            cout << "Tree erased.\n";
+            cout << "1. Recursive Erase\n2. Iterative Erase\nChoose method: ";
+            int eraseChoice;
+            cin >> eraseChoice;
+            if (eraseChoice == 1) {
+                tree.eraseRecursive(tree.root);
+                cout << "Tree erased (recursively).\n";
+            } else if (eraseChoice == 2) {
+                tree.eraseIterative(tree.root);
+                cout << "Tree erased (iteratively).\n";
+            } else {
+                cout << "Invalid choice!\n";
+            }
             break;
         case 13:
             cout << "Exiting...\n";
