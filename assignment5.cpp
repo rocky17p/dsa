@@ -1,137 +1,141 @@
+//============================================================================
+// Name        : assignment5.cpp
+// Author      : 
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
 #include <iostream>
 #include <vector>
 using namespace std;
 
-class Node
-{
+class node {
 public:
     int key, value;
-    Node *next;
-    Node(int k, int v) : key(k), value(v), next(nullptr) {}
+    node *next;
+    node(int k, int v) {
+        key = k;
+        value = v;
+        next = nullptr;
+    }
 };
 
-class HashTable
-{
-private:
-    int TABLE_SIZE;
-    vector<Node *> table;
+class hashtable {
+public:
+    vector<node *> table;
+    int table_size;
 
-    int hashFunc(int key)
-    {
-        return key % TABLE_SIZE;
+    hashtable(int size) {
+        table_size = size;
+        table.resize(size, nullptr);
     }
 
-public:
-    HashTable(int size) : TABLE_SIZE(size), table(size, nullptr) {}
+    int hashfunc(int key) {
+        return key % table_size;
+    }
 
-    void insert(int key, int value)
-    {
-        int idx = hashFunc(key);
-        Node *newNode = new Node(key, value);
+    void insert(int key, int value) {
+        int index = hashfunc(key);
+        node *newnode = new node(key, value);
 
-        if (!table[idx])
-        {
-            table[idx] = newNode;
-        }
-        else
-        {
-            Node *temp = table[idx];
-            while (temp->next)
+        if (!table[index]) {
+            table[index] = newnode;
+        } else {
+            node *temp = table[index];
+            while (temp->next) {
                 temp = temp->next;
-            temp->next = newNode;
+            }
+            temp->next = newnode;
         }
         cout << "Inserted (" << key << ", " << value << ")" << endl;
     }
 
-    bool search(int key, int value)
-{
-    Node *temp = table[hashFunc(key)];
+    bool search(int key, int value) {
+        int index = hashfunc(key);
+        node *temp = table[index];
 
-    while (temp)
-    {
-        if (temp->key == key && temp->value == value)
-            return true;
-        temp = temp->next;
+        while (temp) {
+            if (temp->key == key && temp->value == value) {
+                return true;
+            }
+            temp = temp->next;
+        }
+        return false;
     }
-    return false;
-}
 
+    void remove(int key, int value) {
+        int index = hashfunc(key);
+        node *temp = table[index], *prev = nullptr;
 
-    void remove(int key)
-    {
-        int idx = hashFunc(key);
-        Node *temp = table[idx], *prev = nullptr;
+        while (temp) {
+            if (temp->key == key && temp->value == value) {
+                if (!prev)
+                    table[index] = temp->next;
+                else
+                    prev->next = temp->next;
 
-        while (temp && temp->key != key)
-        {
+                delete temp;
+                cout << "Deleted (" << key << ", " << value << ")" << endl;
+                return;
+            }
             prev = temp;
             temp = temp->next;
         }
-
-        if (!temp)
-        {
-            cout << "Key not found!" << endl;
-            return;
-        }
-
-        if (!prev)
-            table[idx] = temp->next;
-        else
-            prev->next = temp->next;
-
-        delete temp;
-        cout << "Key " << key << " deleted." << endl;
+        cout << "Key-Value pair (" << key << ", " << value << ") not found!" << endl;
     }
 
-    void display()
-    {
-        for (int i = 0; i < TABLE_SIZE; i++)
-        {
+    void display() {
+        for (int i = 0; i < table_size; i++) {
             cout << "Bucket " << i << ": ";
-            for (Node *temp = table[i]; temp; temp = temp->next)
+            for (auto temp = table[i]; temp; temp = temp->next) {
                 cout << "(" << temp->key << ", " << temp->value << ") -> ";
+            }
             cout << "NULL\n";
         }
     }
 };
 
-int main()
-{
-    int size, choice, key, value;
+int main() {
+    int size;
     cout << "Enter hash table size: ";
     cin >> size;
-    HashTable ht(size);
+    hashtable ht(size);
 
-    while (true)
-    {
+    while (true) {
         cout << "\n1. Insert\n2. Search\n3. Delete\n4. Display\n5. Exit\nEnter choice: ";
+        int choice, key, value;
         cin >> choice;
 
-        switch (choice)
-        {
+        switch (choice) {
         case 1:
             cout << "Enter key and value: ";
             cin >> key >> value;
             ht.insert(key, value);
             break;
+
         case 2:
-            cout << "Enter key to search: ";
-            cin >> key;
-            value = ht.search(key);
-            cout << (value != -1 ? "Value: " + to_string(value) : "Key not found!") << endl;
+            cout << "Enter key and value to search: ";
+            cin >> key >> value;
+            cout << (ht.search(key, value) ? "Key-Value pair found!" : "Not found!") << endl;
             break;
+
         case 3:
-            cout << "Enter key to delete: ";
-            cin >> key;
-            ht.remove(key);
+            cout << "Enter key and value to delete: ";
+            cin >> key >> value;
+            ht.remove(key, value);
             break;
+
         case 4:
             ht.display();
             break;
+
         case 5:
+            cout << "Exiting program." << endl;
             return 0;
+
         default:
-            cout << "Invalid choice!" << endl;
+            cout << "Invalid choice! Try again." << endl;
         }
     }
 }
