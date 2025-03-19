@@ -1,3 +1,11 @@
+//============================================================================
+// Name        : assignment4.cpp
+// Author      : 
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -24,7 +32,7 @@ public:
     void insertWithReplacement(string key, string phoneNumber) {
         int index = hashFunction(key);
         int startIndex = index;
-        
+
         if (table[index].first == "") {
             table[index] = {key, phoneNumber};
             return;
@@ -32,11 +40,11 @@ public:
 
         int existingHash = hashFunction(table[index].first);
         if (existingHash != index) {
-            string tempKey = table[index].first;
-            string tempPhone = table[index].second;
+            string displacedKey = table[index].first;
+            string displacedPhone = table[index].second;
             table[index] = {key, phoneNumber};
-            key = tempKey;
-            phoneNumber = tempPhone;
+            key = displacedKey;
+            phoneNumber = displacedPhone;
         }
 
         index = (index + 1) % size;
@@ -58,21 +66,27 @@ public:
         table[index] = {key, phoneNumber};
     }
 
-    string search(const string& key, int &comparisons) {
+    void search(const string& key) {
         int index = hashFunction(key);
         int startIndex = index;
-        comparisons = 0;
+        int comparisons = 0;
 
         while (table[index].first != "" && table[index].first != key) {
             index = (index + 1) % size;
             comparisons++;
-            if (index == startIndex) return "Not Found";
+            if (index == startIndex) {
+                cout << "Not Found\n";
+                return;
+            }
         }
 
         comparisons++;
-        if (table[index].first == key)
-            return table[index].second;
-        return "Not Found";
+        if (table[index].first == key) {
+            cout << "Phone Number: " << table[index].second << endl;
+            cout << "Comparisons: " << comparisons << endl;
+        } else {
+            cout << "Not Found\n";
+        }
     }
 
     void print() {
@@ -95,7 +109,6 @@ int main() {
     HashTable ht(size);
     int choice;
     string name, number;
-    int comparisons = 0;
 
     do {
         cout << "\nMenu:\n";
@@ -127,8 +140,7 @@ int main() {
             case 3:
                 cout << "Enter name to search: ";
                 cin >> name;
-                cout << "Phone Number: " << ht.search(name, comparisons) << endl;
-                cout << "Comparisons: " << comparisons << endl;
+                ht.search(name);
                 break;
 
             case 4:
