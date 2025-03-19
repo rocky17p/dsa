@@ -1,14 +1,22 @@
+//============================================================================
+// Name        : assignment2.cpp
+// Author      : 
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
 #include <iostream>
-#include <bits/stdc++.h>
+#include <stack>
 using namespace std;
 
 class node {
 public:
-    int data;
     node *left;
     node *right;
-    node(int d) {
-        data = d;
+    int data;
+    node(int v) {
+        data = v;
         left = nullptr;
         right = nullptr;
     }
@@ -21,34 +29,26 @@ public:
         root = nullptr;
     }
 
-    void insert(int d) {
+    void insert(int data) {
+        node *newnode = new node(data);
         if (root == nullptr) {
-            node *newnode = new node(d);
             root = newnode;
+            return;
         }
-        else {
-            node *current = root;
-            while (true) {
-                if (current->data > d) {
-                    if (current->left == nullptr) {
-                        node *newnode = new node(d);
-                        current->left = newnode;
-                        break;
-                    }
-                    else {
-                        current = current->left;
-                    }
+        node *current = root;
+        while (true) {
+            if (current->data > data) {
+                if (current->left == nullptr) {
+                    current->left = newnode;
+                    return;
                 }
-                else {
-                    if (current->right == nullptr) {
-                        node *newnode = new node(d);
-                        current->right = newnode;
-                        break;
-                    }
-                    else {
-                        current = current->right;
-                    }
+                current = current->left;
+            } else {
+                if (current->right == nullptr) {
+                    current->right = newnode;
+                    return;
                 }
+                current = current->right;
             }
         }
     }
@@ -60,33 +60,34 @@ public:
         inorder(root->right);
     }
 
-    int nodes(node* root) {
+    bool search(node *root, int key) {
+        if (root == nullptr) return false;
+        if (root->data == key) return true;
+        if (root->data > key) return search(root->left, key);
+        return search(root->right, key);
+    }
+
+    int longest(node *root) {
         if (root == nullptr) return 0;
-        int leftHeight = nodes(root->left);
-        int rightHeight = nodes(root->right);
-        return 1 + max(leftHeight, rightHeight);
+        int lmax = longest(root->left);
+        int rmax = longest(root->right);
+        return 1 + max(lmax, rmax);
     }
 
-    int minimum(node *root) {
-        if (root == nullptr) {
-            cout << "Tree is empty." << endl;
-            return -1;
+    int mini(node *root) {
+        if (root == nullptr) return -1;
+        while (root->left) {
+            root = root->left;
         }
-        if (root->left == nullptr) {
-            return root->data;
-        }
-        return minimum(root->left);
+        return root->data;
     }
 
-    int maximum(node *root) {
-        if (root == nullptr) {
-            cout << "Tree is empty." << endl;
-            return -1;
+    int maxi(node *root) {
+        if (root == nullptr) return -1;
+        while (root->right) {
+            root = root->right;
         }
-        if (root->right == nullptr) {
-            return root->data;
-        }
-        return maximum(root->right);
+        return root->data;
     }
 
     void mirror(node *root) {
@@ -96,74 +97,87 @@ public:
         mirror(root->right);
     }
 
-    int search(node *root, int target) {
-        if (root == nullptr) return -1;
-        if (root->data == target) return root->data;
-        if (root->data > target) return search(root->left, target);
-        return search(root->right, target);
+    node* findMin(node* root) {
+        while (root->left != nullptr) root = root->left;
+        return root;
     }
 
-    void menu() {
-        int choice, data, target;
-        while (true) {
-            cout << "\nMenu: \n";
-            cout << "1. Insert Node\n";
-            cout << "2. Inorder Traversal\n";
-            cout << "3. Calculate Height\n";
-            cout << "4. Minimum Value\n";
-            cout << "5. Maximum Value\n";
-            cout << "6. Search\n";
-            cout << "7. Mirror the Tree\n";
-            cout << "8. Exit\n";
-            cout << "Enter your choice: ";
-            cin >> choice;
-
-            switch (choice) {
-            case 1:
-                cout << "Enter the data to insert: ";
-                cin >> data;
-                insert(data);
-                break;
-            case 2:
-                cout << "Inorder Traversal: ";
-                inorder(root);
-                cout << endl;
-                break;
-            case 3:
-                cout << "Number of nodes in longest path: " << nodes(root) << endl;
-                break;
-            case 4:
-                cout << "Minimum value in tree is: " << minimum(root) << endl;
-                break;
-            case 5:
-                cout << "Maximum value in tree is: " << maximum(root) << endl;
-                break;
-            case 6:
-                cout << "Enter the value to search for: ";
-                cin >> target;
-                int result = search(root, target);
-                if (result != -1) {
-                    cout << "Found node with value: " << result << endl;
-                } else {
-                    cout << "Node not found in the tree." << endl;
-                }
-                break;
-            case 7:
-                mirror(root);
-                cout << "Tree mirrored successfully." << endl;
-                break;
-            case 8:
-                cout << "Exiting the program." << endl;
-                return;
-            default:
-                cout << "Invalid choice. Please try again.\n";
+    node* deleteNode(node* root, int key) {
+        if (root == nullptr) return root;
+        if (key < root->data)
+            root->left = deleteNode(root->left, key);
+        else if (key > root->data)
+            root->right = deleteNode(root->right, key);
+        else {
+            if (root->left == nullptr) {
+                node* temp = root->right;
+                delete root;
+                return temp;
+            } else if (root->right == nullptr) {
+                node* temp = root->left;
+                delete root;
+                return temp;
             }
+            node* temp = findMin(root->right);
+            root->data = temp->data;
+            root->right = deleteNode(root->right, temp->data);
         }
+        return root;
     }
 };
 
 int main() {
     bst tree;
-    tree.menu();
+    int choice, value;
+
+    do {
+        cout << "\nBinary Search Tree Operations:\n";
+        cout << "1. Insert\n2. Inorder Traversal\n3. Search\n4. Find Minimum\n5. Find Maximum\n";
+        cout << "6. Find Height\n7. Mirror Tree\n8. Delete Node\n9. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter value to insert: ";
+                cin >> value;
+                tree.insert(value);
+                break;
+            case 2:
+                cout << "Inorder Traversal: ";
+                tree.inorder(tree.root);
+                cout << endl;
+                break;
+            case 3:
+                cout << "Enter value to search: ";
+                cin >> value;
+                cout << (tree.search(tree.root, value) ? "Found" : "Not Found") << endl;
+                break;
+            case 4:
+                cout << "Minimum Value: " << tree.mini(tree.root) << endl;
+                break;
+            case 5:
+                cout << "Maximum Value: " << tree.maxi(tree.root) << endl;
+                break;
+            case 6:
+                cout << "Height of Tree: " << tree.longest(tree.root) << endl;
+                break;
+            case 7:
+                tree.mirror(tree.root);
+                cout << "Tree mirrored.\n";
+                break;
+            case 8:
+                cout << "Enter value to delete: ";
+                cin >> value;
+                tree.root = tree.deleteNode(tree.root, value);
+                break;
+            case 9:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 9);
+
     return 0;
 }
