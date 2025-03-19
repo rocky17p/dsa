@@ -21,7 +21,7 @@ public:
         return hash % size;
     }
 
-    void insertWithReplacement(const string& key, const string& phoneNumber) {
+    void insertWithReplacement(string key, string phoneNumber) {
         int index = hashFunction(key);
         int startIndex = index;
         
@@ -32,9 +32,11 @@ public:
 
         int existingHash = hashFunction(table[index].first);
         if (existingHash != index) {
-            swap(table[index], make_pair(key, phoneNumber));
-            key = table[index].first;
-            phoneNumber = table[index].second;
+            string tempKey = table[index].first;
+            string tempPhone = table[index].second;
+            table[index] = {key, phoneNumber};
+            key = tempKey;
+            phoneNumber = tempPhone;
         }
 
         index = (index + 1) % size;
@@ -126,7 +128,7 @@ int main() {
                 cout << "Enter name to search: ";
                 cin >> name;
                 cout << "Phone Number: " << ht.search(name, comparisons) << endl;
-                cout << "Comparisons made: " << comparisons << endl;
+                cout << "Comparisons: " << comparisons << endl;
                 break;
 
             case 4:
@@ -141,6 +143,7 @@ int main() {
             default:
                 cout << "Invalid choice! Please try again." << endl;
         }
+
     } while (choice != 5);
 
     return 0;
