@@ -1,18 +1,17 @@
 #include <iostream>
 #include <stack>
-#include <queue>
 using namespace std;
 
 class node {
 public:
     int data;
-    node *left;
-    node *right;
+    node *left, *right, *parent;
 
-    node(int d) {
-        data = d;
+    node(int v) {
+        data = v;
         left = nullptr;
         right = nullptr;
+        parent = nullptr;
     }
 };
 
@@ -24,55 +23,41 @@ public:
         root = nullptr;
     }
 
-    void insert(int d) {
+    void insert(int data) {
+        node *newnode = new node(data);
         if (root == nullptr) {
-            root = new node(d);
-        } else {
+            root = newnode;
+            return;
+        }
+
+        node *temp = root;
+        while (true) {
             char direction;
-            node *temp = root;
-            while (true) {
-                cout << "Enter the direction to move (l/r): ";
-                cin >> direction;
-                if (direction == 'l') {
-                    if (temp->left == nullptr) {
-                        temp->left = new node(d);
-                        break;
-                    } else {
-                        temp = temp->left;
-                    }
-                } else if (direction == 'r') {
-                    if (temp->right == nullptr) {
-                        temp->right = new node(d);
-                        break;
-                    } else {
-                        temp = temp->right;
-                    }
+            cout << "Enter the direction you want to move (l/r): ";
+            cin >> direction;
+
+            if (direction == 'l') {
+                if (temp->left == nullptr) {
+                    temp->left = newnode;
+                    newnode->parent = temp;
+                    cout << "Value inserted to the left of " << temp->data << endl;
+                    return;
                 } else {
-                    cout << "Invalid direction" << endl;
+                    temp = temp->left;
                 }
+            } else if (direction == 'r') {
+                if (temp->right == nullptr) {
+                    temp->right = newnode;
+                    newnode->parent = temp;
+                    cout << "Value inserted to the right of " << temp->data << endl;
+                    return;
+                } else {
+                    temp = temp->right;
+                }
+            } else {
+                cout << "Invalid direction! Please enter 'l' or 'r'." << endl;
             }
         }
-    }
-
-    void preorder(node *root) {
-        if (root == nullptr) return;
-        cout << root->data << " ";
-        preorder(root->left);
-        preorder(root->right);
-    }
-
-    void inorder(node *root) {
-        if (root == nullptr) return;
-        inorder(root->left);
-        cout << root->data << " ";
-        inorder(root->right);
-    }
-
-    void postorder(node *root) {
-        if (root == nullptr) return;
-        postorder(root->left);
-        postorder(root->right);
-        cout << root->data << " ";
     }
 
     // Iterative Traversals
@@ -126,15 +111,41 @@ public:
 
     int height(node *root) {
         if (root == nullptr) return -1;
-        int leftHeight = height(root->left);
-        int rightHeight = height(root->right);
-        return 1 + max(leftHeight, rightHeight);
+        int lmax = height(root->left);
+        int rmax = height(root->right);
+        return 1 + max(lmax, rmax);
     }
 
     int countLeaves(node *root) {
         if (root == nullptr) return 0;
-        if (root->left == nullptr && root->right == nullptr) return 1;
-        return countLeaves(root->left) + countLeaves(root->right);
+        int count = 0;
+        stack<node *> st;
+        st.push(root);
+        while (!st.empty()) {
+            node *current = st.top();
+            st.pop();
+            if (current->left == nullptr && current->right == nullptr) {
+                count++;
+            }
+            if (current->left) st.push(current->left);
+            if (current->right) st.push(current->right);
+        }
+        return count;
+    }
+
+    int countNodes(node *root) {
+        if (root == nullptr) return 0;
+        int count = 0;
+        stack<node *> st;
+        st.push(root);
+        while (!st.empty()) {
+            node *current = st.top();
+            st.pop();
+            count++;
+            if (current->left) st.push(current->left);
+            if (current->right) st.push(current->right);
+        }
+        return count;
     }
 
     int countInternalNodes(node *root) {
@@ -142,56 +153,69 @@ public:
         return 1 + countInternalNodes(root->left) + countInternalNodes(root->right);
     }
 
-    void swapSubtrees(node *root) {
+    void mirror(node *root) {
         if (root == nullptr) return;
         swap(root->left, root->right);
-        swapSubtrees(root->left);
-        swapSubtrees(root->right);
+        mirror(root->left);
+        mirror(root->right);
     }
 
-    // Recursive Erase
-    void eraseRecursive(node *&root) {
-        if (root == nullptr) return;
-        eraseRecursive(root->left);
-        eraseRecursive(root->right);
-        delete root;
-        root = nullptr;
-    }
-
-    // Iterative Erase
-    void eraseIterative(node *&root) {
-        if (root == nullptr) return;
-        queue<node *> q;
-        q.push(root);
-        while (!q.empty()) {
-            node *current = q.front();
-            q.pop();
-            if (current->left) q.push(current->left);
-            if (current->right) q.push(current->right);
-            delete current;
+    void erase_recursive(node *node) {
+        if (node != NULL) {
+            erase_recursive(node->left);
+            erase_recursive(node->right);
+            delete node;
         }
-        root = nullptr;
+    }
+
+    void erase_non_recursive(node *nnode) {
+        if (nnode != NULL) {
+            stack<node *> st;
+            st.push(nnode);
+            while (!st.empty()) {
+                node *temp = st.top();
+                st.pop();
+
+                if (temp->left) st.push(temp->left);
+                if (temp->right) st.push(temp->right);
+
+                delete temp;
+            }
+            root = NULL;
+        }
+    }
+
+    node *copytree(node *copynode) {
+        if (copynode != NULL) {
+            node *temp = new node(copynode->data);
+            temp->left = copytree(copynode->left);
+            if (temp->left) temp->left->parent = temp;
+            temp->right = copytree(copynode->right);
+            if (temp->right) temp->right->parent = temp;
+            return temp;
+        }
+        return NULL;
     }
 };
 
 int main() {
     bt tree;
-    int choice, val;
+    int choice, value;
 
-    do {
-        cout << "\nMenu:\n";
-        cout << "1. Insert Node\n";
-        cout << "2. Recursive Inorder Traversal\n";
-        cout << "3. Recursive Preorder Traversal\n";
-        cout << "4. Recursive Postorder Traversal\n";
-        cout << "5. Iterative Inorder Traversal\n";
-        cout << "6. Iterative Preorder Traversal\n";
-        cout << "7. Iterative Postorder Traversal\n";
-        cout << "8. Height of Tree\n";
-        cout << "9. Count of Leaf Nodes\n";
-        cout << "10. Count of Internal Nodes\n";
-        cout << "11. Swap Subtrees\n";
-        cout << "12. Erase Tree (Choose Method)\n";
+    while (true) {
+        cout << "\n------ Menu ------\n";
+        cout << "1. Insert\n";
+        cout << "2. Display Inorder (Iterative)\n";
+        cout << "3. Display Preorder (Iterative)\n";
+        cout << "4. Display Postorder (Iterative)\n";
+        cout << "5. Height of Tree\n";
+        cout << "6. Count Nodes\n";
+        cout << "7. Count Leaf Nodes\n";
+        cout << "8. Count Internal Nodes\n";
+        cout << "9. Mirror Tree\n";
+        cout << "10. Delete Tree (Recursive)\n";
+        cout << "11. Delete Tree (Non-Recursive)\n";
+        cout << "12. Copy Tree\n";
         cout << "13. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
@@ -199,70 +223,53 @@ int main() {
         switch (choice) {
         case 1:
             cout << "Enter value to insert: ";
-            cin >> val;
-            tree.insert(val);
+            cin >> value;
+            tree.insert(value);
             break;
         case 2:
-            cout << "Recursive Inorder Traversal: ";
-            tree.inorder(tree.root);
-            cout << endl;
-            break;
-        case 3:
-            cout << "Recursive Preorder Traversal: ";
-            tree.preorder(tree.root);
-            cout << endl;
-            break;
-        case 4:
-            cout << "Recursive Postorder Traversal: ";
-            tree.postorder(tree.root);
-            cout << endl;
-            break;
-        case 5:
-            cout << "Iterative Inorder Traversal: ";
+            cout << "Inorder (Iterative): ";
             tree.iterativeInorder(tree.root);
             break;
-        case 6:
-            cout << "Iterative Preorder Traversal: ";
+        case 3:
+            cout << "Preorder (Iterative): ";
             tree.iterativePreorder(tree.root);
             break;
-        case 7:
-            cout << "Iterative Postorder Traversal: ";
+        case 4:
+            cout << "Postorder (Iterative): ";
             tree.iterativePostorder(tree.root);
             break;
-        case 8:
+        case 5:
             cout << "Height of Tree: " << tree.height(tree.root) << endl;
             break;
+        case 6:
+            cout << "Total Nodes: " << tree.countNodes(tree.root) << endl;
+            break;
+        case 7:
+            cout << "Leaf Nodes: " << tree.countLeaves(tree.root) << endl;
+            break;
+        case 8:
+            cout << "Internal Nodes: " << tree.countInternalNodes(tree.root) << endl;
+            break;
         case 9:
-            cout << "Count of Leaf Nodes: " << tree.countLeaves(tree.root) << endl;
+            tree.mirror(tree.root);
+            cout << "Tree mirrored.\n";
             break;
         case 10:
-            cout << "Count of Internal Nodes: " << tree.countInternalNodes(tree.root) << endl;
+            tree.erase_recursive(tree.root);
+            tree.root = nullptr;
+            cout << "Tree deleted recursively.\n";
             break;
         case 11:
-            tree.swapSubtrees(tree.root);
-            cout << "Subtrees swapped.\n";
+            tree.erase_non_recursive(tree.root);
+            cout << "Tree deleted non-recursively.\n";
             break;
         case 12:
-            cout << "1. Recursive Erase\n2. Iterative Erase\nChoose method: ";
-            int eraseChoice;
-            cin >> eraseChoice;
-            if (eraseChoice == 1) {
-                tree.eraseRecursive(tree.root);
-                cout << "Tree erased (recursively).\n";
-            } else if (eraseChoice == 2) {
-                tree.eraseIterative(tree.root);
-                cout << "Tree erased (iteratively).\n";
-            } else {
-                cout << "Invalid choice!\n";
-            }
+            cout << "Tree copied.\n";
             break;
         case 13:
-            cout << "Exiting...\n";
-            break;
+            exit(0);
         default:
             cout << "Invalid choice! Try again.\n";
         }
-    } while (choice != 13);
-
-    return 0;
+    }
 }
