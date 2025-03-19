@@ -3,17 +3,17 @@
 #include <string>
 using namespace std;
 
-class hashtablewithrep {
+class HashTable {
 public:
     vector<pair<string, string>> table;
     int size;
 
-    hashtablewithrep(int size) {
+    HashTable(int size) {
         this->size = size;
         table.resize(size, {"", ""});
     }
 
-    int hashfunction(const string& key) {
+    int hashFunction(const string& key) {
         int hash = 0;
         for (char ch : key) {
             hash += ch;
@@ -21,41 +21,53 @@ public:
         return hash % size;
     }
 
-    void insertrep(const string& key, const string& phonenumber) {
-        int index = hashfunction(key);
-        int startindex = index;
-
-        while (table[index].first != "" && table[index].first != key) {
-            index = (index + 1) % size;
-            if (index == startindex) return;
-        }
-
-        table[index] = {key, phonenumber};
-    }
-
-    void insert(const string& key, const string& phonenumber) {
-        int index = hashfunction(key);
-        int startindex = index;
-
-        while (table[index].first != "" && table[index].first != key) {
-            index = (index + 1) % size;
-            if (index == startindex) return;
-        }
-
+    void insertWithReplacement(const string& key, const string& phoneNumber) {
+        int index = hashFunction(key);
+        int startIndex = index;
+        
         if (table[index].first == "") {
-            table[index] = {key, phonenumber};
+            table[index] = {key, phoneNumber};
+            return;
         }
+
+        int existingHash = hashFunction(table[index].first);
+        if (existingHash != index) {
+            swap(table[index], make_pair(key, phoneNumber));
+            key = table[index].first;
+            phoneNumber = table[index].second;
+        }
+
+        index = (index + 1) % size;
+        while (table[index].first != "") {
+            index = (index + 1) % size;
+            if (index == startIndex) return;
+        }
+        table[index] = {key, phoneNumber};
     }
 
-    string search(const string& key) {
-        int index = hashfunction(key);
-        int startindex = index;
+    void insertWithoutReplacement(const string& key, const string& phoneNumber) {
+        int index = hashFunction(key);
+        int startIndex = index;
 
         while (table[index].first != "" && table[index].first != key) {
             index = (index + 1) % size;
-            if (index == startindex) return "Not Found";
+            if (index == startIndex) return;
+        }
+        table[index] = {key, phoneNumber};
+    }
+
+    string search(const string& key, int &comparisons) {
+        int index = hashFunction(key);
+        int startIndex = index;
+        comparisons = 0;
+
+        while (table[index].first != "" && table[index].first != key) {
+            index = (index + 1) % size;
+            comparisons++;
+            if (index == startIndex) return "Not Found";
         }
 
+        comparisons++;
         if (table[index].first == key)
             return table[index].second;
         return "Not Found";
@@ -78,9 +90,10 @@ int main() {
     cout << "Enter the size of the hash table: ";
     cin >> size;
 
-    hashtablewithrep ht(size);
+    HashTable ht(size);
     int choice;
     string name, number;
+    int comparisons = 0;
 
     do {
         cout << "\nMenu:\n";
@@ -98,7 +111,7 @@ int main() {
                 cin >> name;
                 cout << "Enter phone number: ";
                 cin >> number;
-                ht.insertrep(name, number);
+                ht.insertWithReplacement(name, number);
                 break;
 
             case 2:
@@ -106,13 +119,14 @@ int main() {
                 cin >> name;
                 cout << "Enter phone number: ";
                 cin >> number;
-                ht.insert(name, number);
+                ht.insertWithoutReplacement(name, number);
                 break;
 
             case 3:
                 cout << "Enter name to search: ";
                 cin >> name;
-                cout << "Phone Number: " << ht.search(name) << endl;
+                cout << "Phone Number: " << ht.search(name, comparisons) << endl;
+                cout << "Comparisons made: " << comparisons << endl;
                 break;
 
             case 4:
@@ -127,7 +141,6 @@ int main() {
             default:
                 cout << "Invalid choice! Please try again." << endl;
         }
-
     } while (choice != 5);
 
     return 0;
