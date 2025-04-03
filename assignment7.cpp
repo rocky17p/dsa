@@ -30,7 +30,7 @@ public:
         }
     }
 
-    int spanningTree() {
+    int prims() {
         vector<bool> vis(V + 1, false);
         priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
         pq.push({0, 1});
@@ -72,7 +72,7 @@ int main() {
     }
 
     g.displayGraph();
-    cout << "Minimum Spanning Tree Weight: " << g.spanningTree() << endl;
+    cout << "Minimum Spanning Tree Weight: " << g.prims() << endl;
 
     return 0;
 }
