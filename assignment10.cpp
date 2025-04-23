@@ -1,10 +1,11 @@
 #include <iostream>
+#include <vector>
 using namespace std;
 
-void heapify(int arr[], int n, int i) {
-    int largest = i;         
-    int left = 2 * i + 1;    
-    int right = 2 * i + 2;   
+void heapify(vector<int>& arr, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
 
     if (left < n && arr[left] > arr[largest])
         largest = left;
@@ -18,7 +19,9 @@ void heapify(int arr[], int n, int i) {
     }
 }
 
-void heapSort(int arr[], int n) {
+void heapSort(vector<int>& arr) {
+    int n = arr.size();
+
     for (int i = n / 2 - 1; i >= 0; i--)
         heapify(arr, n, i);
 
@@ -28,18 +31,18 @@ void heapSort(int arr[], int n) {
     }
 }
 
-void printArray(int arr[], int n) {
-    if (n == 0) {
+void printArray(const vector<int>& arr) {
+    if (arr.empty()) {
         cout << "Array is empty.\n";
         return;
     }
-    for (int i = 0; i < n; i++)
-        cout << arr[i] << " ";
+    for (int num : arr)
+        cout << num << " ";
     cout << endl;
 }
 
 int main() {
-    int* arr = nullptr;
+    vector<int> arr;
     int n = 0;
     int choice;
 
@@ -61,8 +64,7 @@ int main() {
                 break;
             }
 
-            arr = new int[n];  // allocate memory
-
+            arr.resize(n);
             cout << "Enter " << n << " elements:\n";
             for (int i = 0; i < n; i++)
                 cin >> arr[i];
@@ -70,17 +72,17 @@ int main() {
 
         case 2:
             cout << "Array: ";
-            printArray(arr, n);
+            printArray(arr);
             break;
 
         case 3:
-            if (n == 0 || arr == nullptr) {
+            if (arr.empty()) {
                 cout << "Please enter array first.\n";
                 break;
             }
-            heapSort(arr, n);
+            heapSort(arr);
             cout << "Sorted array: ";
-            printArray(arr, n);
+            printArray(arr);
             break;
 
         case 4:
@@ -93,6 +95,5 @@ int main() {
 
     } while (choice != 4);
 
-    // No delete[] used here intentionally
     return 0;
 }
