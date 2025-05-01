@@ -1,146 +1,123 @@
 #include <iostream>
 #include <vector>
-#include <climits>
+#include <iomanip>
 using namespace std;
 
-class Node {
+class OBST {
+    int n;
+    vector<string> keys;
+    vector<float> p, q;
+    vector<vector<float>> e, w;
+    vector<vector<int>> root;
+
 public:
-    int key;
-    Node* left;
-    Node* right;
-    Node(int k) : key(k), left(nullptr), right(nullptr) {}
+    void input();
+    void buildOBST();
+    void displayCostMatrix();
 };
 
-class OBST {
-private:
-    vector<int> keys, freq;
-    int n;
-    vector<vector<int>> cost, rootIndex;
-    Node* root;
+void OBST::input() {
+    cout << "Enter number of keys: ";
+    cin >> n;
+    keys.resize(n + 1);
+    p.resize(n + 1);
+    q.resize(n + 1);
 
-    Node* buildTree(int i, int j) {
-        if (i > j) return nullptr;
-        int r = rootIndex[i][j];
-        Node* node = new Node(keys[r]);
-        node->left = buildTree(i, r - 1);
-        node->right = buildTree(r + 1, j);
-        return node;
+    cout << "Enter sorted keys:\n";
+    for (int i = 1; i <= n; ++i) {
+        cout << "Key " << i << ": ";
+        cin >> keys[i];
     }
 
-public:
-    OBST() : root(nullptr), n(0) {}
-
-    void input() {
-        cout << "Enter number of keys: ";
-        cin >> n;
-        keys.resize(n);
-        freq.resize(n);
-
-        cout << "Enter keys (sorted): ";
-        for (int i = 0; i < n; i++) cin >> keys[i];
-
-        cout << "Enter corresponding frequencies: ";
-        for (int i = 0; i < n; i++) cin >> freq[i];
+    cout << "Enter successful search probabilities p[i]:\n";
+    for (int i = 1; i <= n; ++i) {
+        cout << "p[" << i << "]: ";
+        cin >> p[i];
     }
 
-    void build() {
-        cost.assign(n, vector<int>(n));
-        rootIndex.assign(n, vector<int>(n));
+    cout << "Enter unsuccessful search probabilities q[i] (including q[0]):\n";
+    for (int i = 0; i <= n; ++i) {
+        cout << "q[" << i << "]: ";
+        cin >> q[i];
+    }
+}
 
-        for (int i = 0; i < n; i++) {
-            cost[i][i] = freq[i];
-            rootIndex[i][i] = i;
-        }
+void OBST::buildOBST() {
+    e.assign(n + 2, vector<float>(n + 1, 0));
+    w.assign(n + 2, vector<float>(n + 1, 0));
+    root.assign(n + 1, vector<int>(n + 1, 0));
 
-        for (int len = 2; len <= n; len++) {
-            for (int i = 0; i <= n - len; i++) {
-                int j = i + len - 1;
-                cost[i][j] = INT_MAX;
-                int sum = 0;
-                for (int s = i; s <= j; s++) sum += freq[s];
+    for (int i = 0; i <= n; ++i) {
+        e[i + 1][i] = q[i];
+        w[i + 1][i] = q[i];
+    }
 
-                for (int k = i; k <= j; k++) {
-                    int c = sum;
-                    if (k > i) c += cost[i][k - 1];
-                    if (k < j) c += cost[k + 1][j];
-                    if (c < cost[i][j]) {
-                        cost[i][j] = c;
-                        rootIndex[i][j] = k;
-                    }
+    for (int l = 1; l <= n; ++l) {
+        for (int i = 1; i <= n - l + 1; ++i) {
+            int j = i + l - 1;
+            e[i][j] = 1e9;
+            w[i][j] = w[i][j - 1] + p[j] + q[j];
+
+            for (int r = i; r <= j; ++r) {
+                float t = e[i][r - 1] + e[r + 1][j] + w[i][j];
+                if (t < e[i][j]) {
+                    e[i][j] = t;
+                    root[i][j] = r;
                 }
             }
         }
-
-        root = buildTree(0, n - 1);
-        cout << "OBST built successfully.\n";
     }
 
-    void inorder(Node* node) {
-        if (!node) return;
-        inorder(node->left);
-        cout << node->key << " ";
-        inorder(node->right);
-    }
+    cout << "\nMinimum expected search cost: " << e[1][n] << endl;
+}
 
-    void preorder(Node* node) {
-        if (!node) return;
-        cout << node->key << " ";
-        preorder(node->left);
-        preorder(node->right);
-    }
-
-    void showInorder() {
-        if (!root) {
-            cout << "Tree not built.\n";
-            return;
+void OBST::displayCostMatrix() {
+    cout << "\nCost matrix e[i][j]:\n";
+    for (int i = 1; i <= n + 1; ++i) {
+        for (int j = 0; j <= n; ++j) {
+            cout << setw(6) << e[i][j] << " ";
         }
-        inorder(root);
         cout << endl;
     }
 
-    void showPreorder() {
-        if (!root) {
-            cout << "Tree not built.\n";
-            return;
+    cout << "\nRoot matrix root[i][j]:\n";
+    for (int i = 1; i <= n; ++i) {
+        for (int j = i; j <= n; ++j) {
+            cout << "root[" << i << "][" << j << "] = " << root[i][j] << endl;
         }
-        preorder(root);
-        cout << endl;
     }
-
-    void showMinCost() {
-        if (cost.empty()) {
-            cout << "Tree not built.\n";
-            return;
-        }
-        cout << "Minimum Search Cost: " << cost[0][n - 1] << endl;
-    }
-};
+}
 
 int main() {
     OBST tree;
     int choice;
 
     do {
-        cout << "\n--- Optimal BST Menu ---\n";
-        cout << "1. Input Keys and Frequencies\n";
-        cout << "2. Build Optimal BST\n";
-        cout << "3. Inorder Traversal\n";
-        cout << "4. Preorder Traversal\n";
-        cout << "5. Show Minimum Search Cost\n";
-        cout << "6. Exit\n";
-        cout << "Enter choice: ";
+        cout << "\n--- Optimal Binary Search Tree Menu ---\n";
+        cout << "1. Input keys and probabilities\n";
+        cout << "2. Build OBST and show minimum cost\n";
+        cout << "3. Display cost and root matrices\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice) {
-            case 1: tree.input(); break;
-            case 2: tree.build(); break;
-            case 3: tree.showInorder(); break;
-            case 4: tree.showPreorder(); break;
-            case 5: tree.showMinCost(); break;
-            case 6: cout << "Exiting...\n"; break;
-            default: cout << "Invalid choice!\n"; break;
+        case 1:
+            tree.input();
+            break;
+        case 2:
+            tree.buildOBST();
+            break;
+        case 3:
+            tree.displayCostMatrix();
+            break;
+        case 0:
+            cout << "Exiting...\n";
+            break;
+        default:
+            cout << "Invalid choice!\n";
         }
-    } while (choice != 6);
+    } while (choice != 0);
 
     return 0;
 }
