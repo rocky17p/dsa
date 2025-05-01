@@ -55,7 +55,6 @@ public:
         }
     }
 
-    // 🔹 Recursive Traversals (Not in Menu)
     void inorder(node *root) {
         if (root == nullptr) return;
         inorder(root->left);
@@ -77,7 +76,6 @@ public:
         cout << root->data << " ";
     }
 
-    // 🔹 Non-Recursive (Iterative) Traversals
     void iterativeInorder(node *root) {
         stack<node *> st;
         node *current = root;
@@ -126,7 +124,6 @@ public:
         cout << endl;
     }
 
-    // 🔹 Other Functions
     int height(node *root) {
         if (root == nullptr) return -1;
         int lmax = height(root->left);
@@ -204,6 +201,13 @@ public:
         }
         return nullptr;
     }
+
+    void mirror(node *root) {
+        if (root == nullptr) return;
+        swap(root->left, root->right);
+        mirror(root->left);
+        mirror(root->right);
+    }
 };
 
 int main() {
@@ -224,6 +228,7 @@ int main() {
         cout << "10. Erase Tree (Recursive)\n";
         cout << "11. Erase Tree (Non-Recursive)\n";
         cout << "12. Exit\n";
+        cout << "13. Mirror Tree (Swap left and right at every node)\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
@@ -274,6 +279,10 @@ int main() {
                 break;
             case 12:
                 cout << "Exiting...\n";
+                break;
+            case 13:
+                tree.mirror(tree.root);
+                cout << "Tree mirrored successfully.\n";
                 break;
             default:
                 cout << "Invalid choice!\n";
