@@ -51,12 +51,12 @@ public:
         cout << "Inserted (" << key << ", " << value << ")" << endl;
     }
 
-    bool search(int key, int value) {
+    bool search(int key) {
         int index = hashfunc(key);
         node *temp = table[index];
 
         while (temp) {
-            if (temp->key == key && temp->value == value) {
+            if (temp->key == key) {
                 return true;
             }
             temp = temp->next;
@@ -64,12 +64,12 @@ public:
         return false;
     }
 
-    void remove(int key, int value) {
+    void remove(int key,) {
         int index = hashfunc(key);
         node *temp = table[index], *prev = nullptr;
 
         while (temp) {
-            if (temp->key == key && temp->value == value) {
+            if (temp->key == key) {
                 if (!prev)
                     table[index] = temp->next;
                 else
