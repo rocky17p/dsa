@@ -1,11 +1,3 @@
-//============================================================================
-// Name        : assignment5.cpp
-// Author      : 
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
-//============================================================================
-
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -64,7 +56,7 @@ public:
         return false;
     }
 
-    void remove(int key,) {
+    void remove(int key) {
         int index = hashfunc(key);
         node *temp = table[index], *prev = nullptr;
 
@@ -75,14 +67,14 @@ public:
                 else
                     prev->next = temp->next;
 
+                cout << "Deleted (" << key << ", " << temp->value << ")" << endl;
                 delete temp;
-                cout << "Deleted (" << key << ", " << value << ")" << endl;
                 return;
             }
             prev = temp;
             temp = temp->next;
         }
-        cout << "Key-Value pair (" << key << ", " << value << ") not found!" << endl;
+        cout << "Key " << key << " not found!" << endl;
     }
 
     void display() {
@@ -115,15 +107,15 @@ int main() {
             break;
 
         case 2:
-            cout << "Enter key and value to search: ";
-            cin >> key >> value;
-            cout << (ht.search(key, value) ? "Key-Value pair found!" : "Not found!") << endl;
+            cout << "Enter key to search: ";
+            cin >> key;
+            cout << (ht.search(key) ? "Key found!" : "Not found!") << endl;
             break;
 
         case 3:
-            cout << "Enter key and value to delete: ";
-            cin >> key >> value;
-            ht.remove(key, value);
+            cout << "Enter key to delete: ";
+            cin >> key;
+            ht.remove(key);
             break;
 
         case 4:
