@@ -58,8 +58,8 @@ public:
         }
         else
         {
-            tmp->left = par;
             tmp->right = par->right;
+            tmp->left = par;
             par->rthread = false; // After adding a right child, change rthread to false
             par->right = tmp;
         }
