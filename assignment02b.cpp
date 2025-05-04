@@ -2,126 +2,149 @@
 #include <string>
 using namespace std;
 
-class node {
+class Node {
 public:
-    string keyword;
-    node* left;
-    node* right;
-    node(string k) : keyword(k), left(nullptr), right(nullptr) {}
+    string key, meaning;
+    Node* left;
+    Node* right;
+    Node(string k, string m) : key(k), meaning(m), left(nullptr), right(nullptr) {}
 };
 
-class BST {
+class Dictionary {
 public:
-    node* root;
-    BST() : root(nullptr) {}
+    Node* root;
 
-    node* insertNode(node* root, string key) {
+    Dictionary() {
+        root = nullptr;
+    }
+
+    Node* insert(Node* root, string k, string m) {
         if (root == nullptr) {
-            return new node(key);
+            return new Node(k, m);
         }
-        if (key < root->keyword) {
-            root->left = insertNode(root->left, key);
-        } else if (key > root->keyword) {
-            root->right = insertNode(root->right, key);
+
+        if (k < root->key) {
+            root->left = insert(root->left, k, m);
+        } else if (k > root->key) {
+            root->right = insert(root->right, k, m);
+        } else {
+            root->meaning = m;  // Update meaning if keyword already exists
+        }
+
+        return root;
+    }
+
+    bool search(Node* root, string k) {
+        if (root == nullptr) {
+            return false;
+        }
+
+        if (k == root->key) {
+            return true;
+        }
+
+        if (k < root->key) {
+            return search(root->left, k);
+        } else {
+            return search(root->right, k);
+        }
+    }
+
+    Node* findMin(Node* root) {
+        while (root && root->left != nullptr) {
+            root = root->left;
         }
         return root;
     }
 
-    void insert(string key) {
-        root = insertNode(root, key);
-    }
-
-    node* inorderSuccessor(node* node) {
-        node* current = node;
-        while (current && current->left != nullptr) {
-            current = current->left;
-        }
-        return current;
-    }
-
-    node* deleteNode(node* root, string key) {
+    Node* deleteNode(Node* root, string k) {
         if (root == nullptr) return root;
 
-        if (key < root->keyword) {
-            root->left = deleteNode(root->left, key);
-        } else if (key > root->keyword) {
-            root->right = deleteNode(root->right, key);
+        if (k < root->key) {
+            root->left = deleteNode(root->left, k);
+        } else if (k > root->key) {
+            root->right = deleteNode(root->right, k);
         } else {
-            if (root->left == nullptr && root->right == nullptr) {
-                delete root;
-                return nullptr;
-            } else if (root->left == nullptr) {
-                node* temp = root->right;
+            if (root->left == nullptr) {
+                Node* temp = root->right;
                 delete root;
                 return temp;
             } else if (root->right == nullptr) {
-                node* temp = root->left;
+                Node* temp = root->left;
                 delete root;
                 return temp;
-            } else {
-                node* temp = inorderSuccessor(root->right);
-                root->keyword = temp->keyword;
-                root->right = deleteNode(root->right, temp->keyword);
             }
+
+            Node* temp = findMin(root->right);
+            root->key = temp->key;
+            root->meaning = temp->meaning;
+            root->right = deleteNode(root->right, temp->key);
         }
+
         return root;
     }
 
-    void deleteKeyword(string key) {
-        root = deleteNode(root, key);
+    void inorder(Node* root) {
+        if (root != nullptr) {
+            inorder(root->left);
+            cout << root->key << " : " << root->meaning << endl;
+            inorder(root->right);
+        }
     }
 
-    void inorder(node* root) {
-        if (root == nullptr) return;
-        inorder(root->left);
-        cout << root->keyword << " ";
-        inorder(root->right);
-    }
-
-    void display() {
+    void display(Node* root) {
         inorder(root);
-        cout << endl;
     }
 };
 
 int main() {
-    BST tree;
+    Dictionary dict;
     int choice;
-    string keyword;
+    string keyword, meaning;
 
     while (true) {
-        cout << "\nMenu:\n";
-        cout << "1. Insert Keyword\n";
-        cout << "2. Delete Keyword\n";
-        cout << "3. Display Keywords\n";
-        cout << "4. Exit\n";
-        cout << "Enter your choice: ";
+        cout << "\n1. Add Keyword\n2. Search Keyword\n3. Delete Keyword\n4. Display All Keywords\n5. Exit\nEnter your choice: ";
         cin >> choice;
 
         switch (choice) {
-        case 1:
-            cout << "Enter the keyword to insert: ";
-            cin >> keyword;
-            tree.insert(keyword);
-            break;
+            case 1:
+                cout << "Enter keyword: ";
+                cin >> keyword;
+                cout << "Enter meaning: ";
+                cin >> meaning;
+                dict.root = dict.insert(dict.root, keyword, meaning);
+                break;
 
-        case 2:
-            cout << "Enter the keyword to delete: ";
-            cin >> keyword;
-            tree.deleteKeyword(keyword);
-            break;
+            case 2:
+                cout << "Enter keyword to search: ";
+                cin >> keyword;
+                if (dict.search(dict.root, keyword)) {
+                    cout << "Found: " << keyword << endl;
+                } else {
+                    cout << "Keyword not found!" << endl;
+                }
+                break;
 
-        case 3:
-            cout << "Keywords in the dictionary (in-order traversal):\n";
-            tree.display();
-            break;
+            case 3:
+                cout << "Enter keyword to delete: ";
+                cin >> keyword;
+                dict.root = dict.deleteNode(dict.root, keyword);
+                cout << "Keyword deleted." << endl;
+                break;
 
-        case 4:
-            cout << "Exiting program.\n";
-            return 0;
+            case 4:
+                cout << "Displaying all keywords:\n";
+                dict.display(dict.root);
+                break;
 
-        default:
-            cout << "Invalid choice. Try again.\n";
+            case 5:
+                cout << "Exiting program." << endl;
+                return 0;
+
+            default:
+                cout << "Invalid choice! Try again." << endl;
         }
     }
+
+    return 0;
 }
