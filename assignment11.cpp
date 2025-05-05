@@ -1,129 +1,147 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <vector>
+#include <cstring>
 using namespace std;
 
 class Student {
 public:
-    string rollNo, name, division, address;
+    int roll, div;
+    char name[50], address[100];
 
-    Student() {}
-    Student(string r, string n, string d, string a)
-        : rollNo(r), name(n), division(d), address(a) {}
-
-    string serialize() const {
-        return rollNo + "-" + name + " " + division + " " + address;
+    Student() {
+        roll = div = 0;
+        strcpy(name, "");
+        strcpy(address, "");
     }
 
-    static Student deserialize(const string &line) {
-        stringstream ss(line);
-        string r, n, d, a;
-        getline(ss, r, '-');
-        getline(ss, n, ' ');
-        getline(ss, d, ' ');
-        getline(ss, a);
-        return Student(r, n, d, a);
+    void getData() {
+        cin.ignore();
+        cout << "Enter name: ";
+        cin.getline(name, 50);
+        cout << "Enter roll no: ";
+        cin >> roll;
+        cout << "Enter div: ";
+        cin >> div;
+        cin.ignore();
+        cout << "Enter address: ";
+        cin.getline(address, 100);
     }
 
     void display() const {
-        cout << "Roll No: " << rollNo << "\nName: " << name
-             << "\nDivision: " << division << "\nAddress: " << address << endl;
+        cout << "Name: " << name
+             << "\nRoll: " << roll
+             << "\nDiv: " << div
+             << "\nAddress: " << address << "\n\n";
+    }
+
+    int getRoll() const {
+        return roll;
     }
 };
 
-void addStudent(const string &filename) {
-    ofstream file(filename, ios::app);
-    if (!file) {
-        cout << "Error opening file.\n";
-        return;
+class StudentFile {
+public:
+    char filename[30];
+
+    StudentFile() {
+        cout << "Enter filename: ";
+        cin >> filename;
+        fstream file(filename, ios::out | ios::binary);
+        if (file)
+            cout << "File created.\n";
     }
 
-    string r, n, d, a;
-    cout << "Enter Roll No: "; cin >> r;
-    cin.ignore();
-    cout << "Enter Name: "; getline(cin, n);
-    cout << "Enter Division: "; getline(cin, d);
-    cout << "Enter Address: "; getline(cin, a);
-
-    Student s(r, n, d, a);
-    file << s.serialize() << endl;
-    cout << "Student added.\n";
-}
-
-void displayStudent(const string &filename) {
-    ifstream file(filename);
-    if (!file) {
-        cout << "Error opening file.\n";
-        return;
+    void addRecord() {
+        fstream file(filename, ios::app | ios::binary);
+        Student s;
+        s.getData();
+        file.write((char*)&s, sizeof(s));
+        cout << "Record added.\n";
     }
 
-    string roll, line;
-    cout << "Enter Roll No to search: "; cin >> roll;
-    bool found = false;
-
-    while (getline(file, line)) {
-        Student s = Student::deserialize(line);
-        if (s.rollNo == roll) {
-            cout << "\nStudent found:\n";
+    void displayAll() {
+        fstream file(filename, ios::in | ios::binary);
+        Student s;
+        bool found = false;
+        while (file.read((char*)&s, sizeof(s))) {
             s.display();
             found = true;
-            break;
         }
+        if (!found)
+            cout << "No records found.\n";
     }
 
-    if (!found)
-        cout << "Student not found.\n";
-}
+    void deleteRecord(int rollno) {
+        fstream file(filename, ios::in | ios::binary);
+        fstream temp("temp", ios::out | ios::binary);
+        Student s;
+        bool found = false;
 
-void deleteStudent(const string &filename) {
-    ifstream file(filename);
-    if (!file) {
-        cout << "Error opening file.\n";
-        return;
-    }
-
-    string roll, line;
-    cout << "Enter Roll No to delete: "; cin >> roll;
-    vector<string> records;
-    bool found = false;
-
-    while (getline(file, line)) {
-        Student s = Student::deserialize(line);
-        if (s.rollNo != roll)
-            records.push_back(line);
-        else
-            found = true;
-    }
-    file.close();
-
-    if (found) {
-        ofstream outFile(filename, ios::trunc);
-        for (const auto &rec : records)
-            outFile << rec << endl;
-        cout << "Student deleted.\n";
-    } else {
-        cout << "Student not found.\n";
-    }
-}
-
-void menu() {
-    string file = "students.txt";
-    int ch;
-    while (true) {
-        cout << "\n1. Add Student\n2. Display Student\n3. Delete Student\n4. Exit\nChoice: ";
-        cin >> ch;
-        switch (ch) {
-            case 1: addStudent(file); break;
-            case 2: displayStudent(file); break;
-            case 3: deleteStudent(file); break;
-            case 4: return;
-            default: cout << "Invalid choice.\n";
+        while (file.read((char*)&s, sizeof(s))) {
+            if (s.getRoll() == rollno) {
+                cout << "Deleting:\n";
+                s.display();
+                found = true;
+            } else {
+                temp.write((char*)&s, sizeof(s));
+            }
         }
+
+        file.close();
+        temp.close();
+
+        remove(filename);
+        rename("temp", filename);
+
+        if (!found)
+            cout << "Roll number not found.\n";
     }
-}
+
+    void searchRecord(int rollno) {
+        fstream file(filename, ios::in | ios::binary);
+        Student s;
+        while (file.read((char*)&s, sizeof(s))) {
+            if (s.getRoll() == rollno) {
+                cout << "Record Found:\n";
+                s.display();
+                return;
+            }
+        }
+        cout << "No record found for roll number " << rollno << ".\n";
+    }
+};
 
 int main() {
-    menu();
+    StudentFile sf;
+    int choice, rollno;
+
+    do {
+        cout << "\n===== MENU =====\n"
+             << "1. Add Record\n"
+             << "2. Display All Records\n"
+             << "3. Delete Record\n"
+             << "4. Search Record\n"
+             << "0. Exit\n"
+             << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: sf.addRecord(); break;
+            case 2: sf.displayAll(); break;
+            case 3:
+                cout << "Enter roll number to delete: ";
+                cin >> rollno;
+                sf.deleteRecord(rollno);
+                break;
+            case 4:
+                cout << "Enter roll number to search: ";
+                cin >> rollno;
+                sf.searchRecord(rollno);
+                break;
+            case 0: cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice.\n";
+        }
+    } while (choice != 0);
+
     return 0;
 }
