@@ -2,48 +2,67 @@
 #include <vector>
 using namespace std;
 
-void heapify(vector<int>& arr, int n, int i) {
-    int largest = i;
-    int left = 2 * i + 1;
-    int right = 2 * i + 2;
+class HeapSort {
+public:
+    vector<int> arr;
 
-    if (left < n && arr[left] > arr[largest])
-        largest = left;
+    void heapify(int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
 
-    if (right < n && arr[right] > arr[largest])
-        largest = right;
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
 
-    if (largest != i) {
-        swap(arr[i], arr[largest]);
-        heapify(arr, n, largest);
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            swap(arr[i], arr[largest]);
+            heapify(n, largest);
+        }
     }
-}
 
-void heapSort(vector<int>& arr) {
-    int n = arr.size();
-
-    for (int i = n / 2 - 1; i >= 0; i--)
-        heapify(arr, n, i);
-
-    for (int i = n - 1; i > 0; i--) {
-        swap(arr[0], arr[i]);
-        heapify(arr, i, 0);
+    void enterArray() {
+        int n;
+        cout << "Enter number of elements: ";
+        cin >> n;
+        
+        arr.resize(n);
+        cout << "Enter " << n << " elements:\n";
+        for (int i = 0; i < n; ++i)
+            cin >> arr[i];
     }
-}
 
-void printArray(const vector<int>& arr) {
-    if (arr.empty()) {
-        cout << "Array is empty.\n";
-        return;
+    void displayArray() const {
+        if (arr.empty()) {
+            cout << "Array is empty.\n";
+            return;
+        }
+
+        for (int num : arr)
+            cout << num << " ";
+        cout << endl;
     }
-    for (int num : arr)
-        cout << num << " ";
-    cout << endl;
-}
+
+    void sort() {
+        int n = arr.size();
+
+        for (int i = n / 2 - 1; i >= 0; i--)
+            heapify(n, i);
+
+        for (int i = n - 1; i > 0; i--) {
+            swap(arr[0], arr[i]);
+            heapify(i, 0);
+        }
+
+        cout << "Sorted array: ";
+        displayArray();
+    }
+};
 
 int main() {
-    vector<int> arr;
-    int n = 0;
+    HeapSort hs;
     int choice;
 
     do {
@@ -57,38 +76,17 @@ int main() {
 
         switch (choice) {
         case 1:
-            cout << "Enter number of elements: ";
-            cin >> n;
-            if (n <= 0) {
-                cout << "Invalid size.\n";
-                break;
-            }
-
-            arr.resize(n);
-            cout << "Enter " << n << " elements:\n";
-            for (int i = 0; i < n; i++)
-                cin >> arr[i];
+            hs.enterArray();
             break;
-
         case 2:
-            cout << "Array: ";
-            printArray(arr);
+            hs.displayArray();
             break;
-
         case 3:
-            if (arr.empty()) {
-                cout << "Please enter array first.\n";
-                break;
-            }
-            heapSort(arr);
-            cout << "Sorted array: ";
-            printArray(arr);
+            hs.sort();
             break;
-
         case 4:
             cout << "Exiting program.\n";
             break;
-
         default:
             cout << "Invalid choice. Try again.\n";
         }
