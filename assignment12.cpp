@@ -3,7 +3,6 @@
 #include <cstring>
 using namespace std;
 
-const char* FILE_NAME = "direct_access_file.dat";
 const int MAX_RECORDS = 100;
 
 class Record {
@@ -21,8 +20,10 @@ public:
 
 class RecordFile {
 public:
+    const char* filename = "direct_access_file.dat";
+
     RecordFile() {
-        fstream file(FILE_NAME, ios::out | ios::binary);
+        fstream file(filename, ios::out | ios::binary);
         Record empty;
         for (int i = 0; i < MAX_RECORDS; i++)
             file.write((char*)&empty, sizeof(empty));
@@ -35,7 +36,7 @@ public:
             return;
         }
 
-        fstream file(FILE_NAME, ios::in | ios::out | ios::binary);
+        fstream file(filename, ios::in | ios::out | ios::binary);
         Record rec;
 
         file.seekg(index * sizeof(Record));
@@ -62,7 +63,7 @@ public:
             return;
         }
 
-        fstream file(FILE_NAME, ios::in | ios::out | ios::binary);
+        fstream file(filename, ios::in | ios::out | ios::binary);
         Record empty;
 
         file.seekp(index * sizeof(Record));
@@ -73,7 +74,7 @@ public:
     }
 
     void displayRecords() {
-        fstream file(FILE_NAME, ios::in | ios::binary);
+        fstream file(filename, ios::in | ios::binary);
         Record rec;
 
         for (int i = 0; i < MAX_RECORDS; i++) {
