@@ -46,7 +46,7 @@ public:
             cout << "Record already exists at index " << index << ".\n";
         } else {
             rec.id = id;
-            strncpy(rec.name, name, sizeof(rec.name) - 1);
+           strcpy(rec.name,name);
             rec.age = age;
 
             file.seekp(index * sizeof(Record));
