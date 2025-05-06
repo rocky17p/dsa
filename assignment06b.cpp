@@ -7,13 +7,12 @@ using namespace std;
 
 class Graph {
 public:
-    unordered_map<string, vector<pair<string, int>>> adj;
+    unordered_map<string, vector<string>> adj;
     unordered_map<string, bool> visited;
     unordered_set<string> cities;
 
-    void addEdge(string u, string v, int cost) {
-        adj[u].push_back({v, cost});
-        // If undirected, also do: adj[v].push_back({u, cost});
+    void addEdge(string u, string v) {
+        adj[u].push_back(v);
         cities.insert(u);
         cities.insert(v);
     }
@@ -25,8 +24,8 @@ public:
         cout << node << " ";
 
         for (auto& neighbor : adj[node]) {
-            if (!visited[neighbor.first]) {
-                dfsHelper(neighbor.first);
+            if (!visited[neighbor]) {
+                dfsHelper(neighbor);
             }
         }
     }
@@ -41,13 +40,15 @@ public:
     void calculateDegrees() {
         unordered_map<string, int> indegree, outdegree;
 
-        for (auto it : adj) {
-            outdegree[it.first] = it.second.size();
+        // Initialize to zero for all cities
+        for (auto city : cities) {
+            indegree[city] = 0;
+            outdegree[city] = adj[city].size();  // may be 0 if no outgoing edge
         }
 
-        for (auto it : adj) {
-            for (auto to : it.second) {
-                indegree[to.first]++;
+        for (auto& it : adj) {
+            for (auto& to : it.second) {
+                indegree[to]++;
             }
         }
 
@@ -71,7 +72,6 @@ int main() {
     Graph g;
     int choice;
     string u, v, start;
-    int cost;
 
     while (true) {
         cout << "\nMenu: \n";
@@ -85,30 +85,24 @@ int main() {
 
         switch (choice) {
             case 1:
-                // Add edge to graph
                 cout << "Enter source city: ";
                 cin >> u;
                 cout << "Enter destination city: ";
                 cin >> v;
-                cout << "Enter cost (time/fuel): ";
-                cin >> cost;
-                g.addEdge(u, v, cost);
+                g.addEdge(u, v);
                 break;
-            
+
             case 2:
-                // Perform DFS
                 cout << "Enter start city for DFS: ";
                 cin >> start;
                 g.dfs(start);
                 break;
-            
+
             case 3:
-                // Calculate Degrees
                 g.calculateDegrees();
                 break;
-            
+
             case 4:
-                // Check if Graph is Connected
                 cout << "Enter start city to check connectivity: ";
                 cin >> start;
                 if (g.isConnected(start)) {
@@ -117,12 +111,11 @@ int main() {
                     cout << "\nGraph is NOT connected\n";
                 }
                 break;
-            
+
             case 5:
-                // Exit
                 cout << "Exiting...\n";
                 return 0;
-            
+
             default:
                 cout << "Invalid choice, please try again.\n";
         }
