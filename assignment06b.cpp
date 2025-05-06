@@ -23,7 +23,7 @@ public:
         visited[node] = true;
         cout << node << " ";
 
-        for (auto& neighbor : adj[node]) {
+        for (auto neighbor : adj[node]) {
             if (!visited[neighbor]) {
                 dfsHelper(neighbor);
             }
@@ -46,8 +46,8 @@ public:
             outdegree[city] = adj[city].size();  // may be 0 if no outgoing edge
         }
 
-        for (auto& it : adj) {
-            for (auto& to : it.second) {
+        for (auto it : adj) {
+            for (auto to : it.second) {
                 indegree[to]++;
             }
         }
