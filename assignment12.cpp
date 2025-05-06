@@ -1,171 +1,133 @@
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <vector>
+#include <cstring>
 using namespace std;
 
-const int RECORD_SIZE = 100;
-const string FILENAME = "data.daf";
+const char* FILE_NAME = "direct_access_file.dat";
+const int MAX_RECORDS = 100;
 
-string formatRecord(const string& data) {
-    string result = data;
-    result.resize(RECORD_SIZE, ' ');
-    return result;
-}
+class Record {
+public:
+    int id;
+    char name[20];
+    int age;
 
-void writeRecords() {
-    fstream daf(FILENAME, ios::out | ios::binary);
-    if (!daf) {
-        cerr << "Error creating file.\n";
-        return;
+    Record() {
+        id = -1;
+        strcpy(name, "");
+        age = 0;
+    }
+};
+
+class RecordFile {
+public:
+    RecordFile() {
+        fstream file(FILE_NAME, ios::out | ios::binary);
+        Record empty;
+        for (int i = 0; i < MAX_RECORDS; i++)
+            file.write((char*)&empty, sizeof(empty));
+        file.close();
     }
 
-    string records[] = {
-        "01, abc, 25, Engineer",
-        "02, bcd, 30, Doctor",
-        "03, cde, 22, Teacher",
-        "04, def, 28, Designer"
-    };
+    void insertRecord(int index, int id, const char* name, int age) {
+        if (index < 0 || index >= MAX_RECORDS) {
+            cout << "Invalid index!\n";
+            return;
+        }
 
-    for (auto& rec : records) {
-        string padded = formatRecord(rec);
-        daf.write(padded.c_str(), RECORD_SIZE);
+        fstream file(FILE_NAME, ios::in | ios::out | ios::binary);
+        Record rec;
+
+        file.seekg(index * sizeof(Record));
+        file.read((char*)&rec, sizeof(rec));
+
+        if (rec.id != -1) {
+            cout << "Record already exists at index " << index << ".\n";
+        } else {
+            rec.id = id;
+            strncpy(rec.name, name, sizeof(rec.name) - 1);
+            rec.age = age;
+
+            file.seekp(index * sizeof(Record));
+            file.write((char*)&rec, sizeof(rec));
+            cout << "Inserted successfully.\n";
+        }
+
+        file.close();
     }
 
-    daf.close();
-    cout << "Records written successfully.\n";
-}
+    void deleteRecord(int index) {
+        if (index < 0 || index >= MAX_RECORDS) {
+            cout << "Invalid index!\n";
+            return;
+        }
 
-void readRecord(int index) {
-    fstream daf(FILENAME, ios::in | ios::binary);
-    if (!daf) {
-        cerr << "File not found.\n";
-        return;
+        fstream file(FILE_NAME, ios::in | ios::out | ios::binary);
+        Record empty;
+
+        file.seekp(index * sizeof(Record));
+        file.write((char*)&empty, sizeof(empty));
+        cout << "Deleted successfully.\n";
+
+        file.close();
     }
 
-    daf.seekg(index * RECORD_SIZE, ios::beg);
-    char buffer[RECORD_SIZE];
-    daf.read(buffer, RECORD_SIZE);
-    daf.close();
+    void displayRecords() {
+        fstream file(FILE_NAME, ios::in | ios::binary);
+        Record rec;
 
-    string record(buffer, RECORD_SIZE);
+        for (int i = 0; i < MAX_RECORDS; i++) {
+            file.read((char*)&rec, sizeof(rec));
+            cout << "Index " << i << ": ";
+            if (rec.id == -1)
+                cout << "[Empty]\n";
+            else
+                cout << "ID: " << rec.id << ", Name: " << rec.name << ", Age: " << rec.age << "\n";
+        }
 
-    if (record[0] == '#' || record.find_first_not_of(' ') == string::npos) {
-        cout << "Record at index " << index << " is deleted or empty.\n";
-    } else {
-        cout << "Record at index " << index << ": " << record << "\n";
+        file.close();
     }
-}
-
-void logicalDelete(int index) {
-    fstream daf(FILENAME, ios::in | ios::out | ios::binary);
-    if (!daf) {
-        cerr << "File not found.\n";
-        return;
-    }
-
-    daf.seekp(index * RECORD_SIZE, ios::beg);
-    string deleted = "#";
-    deleted.resize(RECORD_SIZE, ' ');
-    daf.write(deleted.c_str(), RECORD_SIZE);
-    daf.close();
-
-    cout << "Logically deleted record at index " << index << ".\n";
-}
-
-void actualDelete(int index) {
-    fstream daf(FILENAME, ios::in | ios::binary);
-    if (!daf) {
-        cerr << "File not found.\n";
-        return;
-    }
-
-    vector<string> records;
-    char buffer[RECORD_SIZE];
-    while (daf.read(buffer, RECORD_SIZE)) {
-        records.push_back(string(buffer, RECORD_SIZE));
-    }
-    daf.close();
-
-    if (index < 0 || index >= records.size()) {
-        cout << "Invalid index for deletion.\n";
-        return;
-    }
-
-    records.erase(records.begin() + index);
-
-    daf.open(FILENAME, ios::out | ios::binary | ios::trunc);
-    for (auto& rec : records) {
-        daf.write(rec.c_str(), RECORD_SIZE);
-    }
-    daf.close();
-
-    cout << "Physically deleted record at index " << index << ".\n";
-}
-
-void displayAll() {
-    fstream daf(FILENAME, ios::in | ios::binary);
-    if (!daf) {
-        cerr << "File not found.\n";
-        return;
-    }
-
-    char buffer[RECORD_SIZE];
-    int index = 0;
-
-    while (daf.read(buffer, RECORD_SIZE)) {
-        string record(buffer, RECORD_SIZE);
-        if (record[0] != '#')
-            cout << "Index " << index << ": " << record << "\n";
-        else
-            cout << "Index " << index << ": [Deleted]\n";
-        ++index;
-    }
-
-    daf.close();
-}
+};
 
 int main() {
-    int choice, index;
+    RecordFile rf;
+    int choice, index, id, age;
+    char name[20];
 
     while (true) {
-        cout << "\n----- Direct Access File Menu -----\n";
-        cout << "1. Write Sample Records\n";
-        cout << "2. Read Record\n";
-        cout << "3. Logical Delete\n";
-        cout << "4. Actual Delete\n";
-        cout << "5. Display All Records\n";
-        cout << "6. Exit\n";
-        cout << "Enter choice: ";
+        cout << "\n--- MENU ---\n";
+        cout << "1. Insert Record\n";
+        cout << "2. Delete Record\n";
+        cout << "3. Display All Records\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice) {
             case 1:
-                writeRecords();
+                cout << "Enter index (0-" << MAX_RECORDS - 1 << "): ";
+                cin >> index;
+                cout << "Enter ID, Name, Age: ";
+                cin >> id >> name >> age;
+                rf.insertRecord(index, id, name, age);
                 break;
+
             case 2:
-                cout << "Enter index to read: ";
+                cout << "Enter index to delete: ";
                 cin >> index;
-                readRecord(index);
+                rf.deleteRecord(index);
                 break;
+
             case 3:
-                cout << "Enter index to logically delete: ";
-                cin >> index;
-                logicalDelete(index);
+                rf.displayRecords();
                 break;
-            case 4:
-                cout << "Enter index to physically delete: ";
-                cin >> index;
-                actualDelete(index);
-                break;
-            case 5:
-                displayAll();
-                break;
-            case 6:
+
+            case 0:
                 cout << "Exiting...\n";
                 return 0;
+
             default:
-                cout << "Invalid choice. Try again.\n";
+                cout << "Invalid choice.\n";
         }
     }
 }
